@@ -17,24 +17,71 @@ const locationData={
  future:{kicker:'FUTURE · 미래교통',title:'확정 노선보다 중요한<br>실현 가능성의 구분',body:'현재 왜관읍은 GTX 직접 수혜 지역으로 보기 어렵습니다. 발표·검토·계획·착공을 구분하고 공식 고시와 사업 진행률을 기준으로 보수적으로 판단해야 합니다.',stats:[['GTX 직접 연결','해당 없음'],['검토 원칙','공식 고시 확인']],note:'미래 교통 호재는 가격에 선반영될 수 있습니다. 확정되지 않은 계획은 투자 판단에서 별도 시나리오로 분리하세요.',labels:['왜관 생활권','광역철도 검토','대구권 연계','계획 단계'],theme:'#e8e3db'}
 };
 
-let activeType='sale'; let activePeriod='3Y';
+const riProfiles={
+ all:{label:'왜관읍 전체',price:1,index:0,volume:1,seed:1},
+ waegwan:{label:'왜관리',price:1.06,index:.8,volume:1.22,seed:2},
+ seokjeon:{label:'석전리',price:.94,index:-.3,volume:.88,seed:3},
+ maewon:{label:'매원리',price:.91,index:-.7,volume:.72,seed:4},
+ bonggye:{label:'봉계리',price:.96,index:.2,volume:.81,seed:5},
+ samcheong:{label:'삼청리',price:.92,index:-.5,volume:.68,seed:6},
+ geumsan:{label:'금산리',price:1.01,index:.4,volume:.93,seed:7},
+ geumnam:{label:'금남리',price:.89,index:-.8,volume:.61,seed:8},
+ naksan:{label:'낙산리',price:.93,index:-.2,volume:.76,seed:9},
+ agok:{label:'아곡리',price:.87,index:-1.1,volume:.54,seed:10},
+ daechon:{label:'대촌리',price:.90,index:-.6,volume:.64,seed:11}
+};
+const maxDate='2026-10-22',minDate='2025-01-01';
+let activeType='sale'; let activePeriod='3Y'; let selectedRi='all'; let selectedDate=maxDate;
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
 const fmt=v=>Number.isInteger(v)?v.toLocaleString('ko-KR'):v.toFixed(1);
+
+function dateValue(value){return new Date(`${value}T12:00:00`)}
+function dateLabel(value){const [y,m,d]=value.split('-');return `${y}. ${m}. ${d}`}
+function amountValue(text){const eok=Number(text.match(/(\d+)억/)?.[1]||0)*10000;const rest=Number(text.split('억')[1]?.replace(/[^0-9]/g,'')||0);return eok+rest}
+function amountLabel(value){const rounded=Math.max(0,Math.round(value/50)*50),eok=Math.floor(rounded/10000),rest=rounded%10000;return eok?`${eok}억${rest?` ${rest.toLocaleString('ko-KR')}`:''}`:rounded.toLocaleString('ko-KR')}
+function getViewData(){
+ const base=datasets[activeType],profile=riProfiles[selectedRi];
+ const days=Math.round((dateValue(selectedDate)-dateValue(maxDate))/86400000);
+ const seasonal=1+Math.sin((dateValue(selectedDate).getMonth()+1)*.72+profile.seed)*.06;
+ const priceScale=Math.max(.82,profile.price*(1+days*.0001));
+ const indexShift=profile.index+days*.004;
+ const index=base.index.map((v,i)=>+(v+indexShift*(.25+.75*i/(base.index.length-1))).toFixed(1));
+ const county=base.county.map((v,i)=>+(v+days*.0025*(.25+.75*i/(base.county.length-1))).toFixed(1));
+ const rowScale=(value,i,monthly=false)=>{const variation=1+(((profile.seed+i*7)%9)-4)*.006;const scaled=value*priceScale*variation;return monthly?+scaled.toFixed(1):Math.round(scaled/10)*10};
+ const prices=base.prices.map((r,i)=>[...r.slice(0,2),rowScale(r[2],i,activeType==='monthly')]).sort((a,b)=>b[2]-a[2]);
+ const pyeong=base.pyeong.map((r,i)=>[...r.slice(0,2),rowScale(r[2],i,activeType==='monthly')]).sort((a,b)=>b[2]-a[2]);
+ const volumeScale=profile.volume*seasonal;
+ const vol=base.vol.map((v,i)=>Math.max(1,Math.round(v*volumeScale*(.92+i*.007))));
+ const deals=String(Math.max(1,Math.round(Number(base.deals)*volumeScale)));
+ let price,pyeongAvg;
+ if(activeType==='monthly'){const [deposit,rent]=base.price.split('/').map(v=>Number(v.replace(/[^0-9.]/g,'')));const scaledDeposit=Math.round(deposit*priceScale/10)*10;price=`${scaledDeposit.toLocaleString('ko-KR')} / ${Math.round(rent*priceScale)}`;pyeongAvg=(Number(base.pyeongAvg)*priceScale).toFixed(1)}
+ else{price=amountLabel(amountValue(base.price)*priceScale);pyeongAvg=Math.round(Number(base.pyeongAvg)*priceScale).toLocaleString('ko-KR')}
+ const change=((index.at(-1)/index.at(-4)-1)*100).toFixed(1);
+ return {...base,index,county,prices,pyeong,vol,deals,price,pyeongAvg,indexChange:`${Number(change)>=0?'↗':'↘'} ${Math.abs(change)}%`,priceSub:`${dateLabel(selectedDate)} 기준 · ${base.priceSub}`};
+}
 
 function sparkline(el,values){const min=Math.min(...values)-1,max=Math.max(...values)+1;const pts=values.map((v,i)=>`${(i/(values.length-1))*136+2},${40-((v-min)/(max-min))*36}`).join(' ');el.innerHTML=`<defs><linearGradient id="sparkG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f7863" stop-opacity=".28"/><stop offset="1" stop-color="#2f7863" stop-opacity="0"/></linearGradient></defs><polygon points="2,42 ${pts} 138,42" fill="url(#sparkG)"/><polyline points="${pts}" fill="none" stroke="#1c5d4b" stroke-width="2"/>`;}
 
 function chart(values,benchmark){const w=760,h=260,p={l:35,r:18,t:16,b:30};const all=[...values,...benchmark];const min=Math.floor(Math.min(...all)-2),max=Math.ceil(Math.max(...all)+2);const x=i=>p.l+i*(w-p.l-p.r)/(values.length-1);const y=v=>p.t+(max-v)*(h-p.t-p.b)/(max-min);const path=arr=>arr.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');const area=`${path(values)} L${x(values.length-1)},${h-p.b} L${x(0)},${h-p.b} Z`;const labels=['23.12','24.03','24.06','24.09','24.12','25.03','25.06','25.09','25.12','26.03','26.06','26.10'];let grids='';for(let i=0;i<5;i++){const val=min+(max-min)*i/4;const yy=y(val);grids+=`<line class="chart-grid" x1="${p.l}" x2="${w-p.r}" y1="${yy}" y2="${yy}"/><text class="chart-axis" x="0" y="${yy+4}">${val.toFixed(0)}</text>`}const ticks=labels.map((l,i)=>i%2===0?`<text class="chart-axis" x="${x(i)}" y="${h-6}" text-anchor="middle">${l}</text>`:'').join('');return `<svg viewBox="0 0 ${w} ${h}" role="img"><defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6eac96" stop-opacity=".35"/><stop offset="1" stop-color="#6eac96" stop-opacity="0"/></linearGradient></defs>${grids}<path class="chart-area" d="${area}"/><path class="chart-benchmark" d="${path(benchmark)}"/><path class="chart-line" d="${path(values)}"/><circle class="chart-dot" cx="${x(values.length-1)}" cy="${y(values.at(-1))}" r="5"/>${ticks}</svg>`}
 
-function rankings(el,rows,isMonthly=false){const max=rows[0][2];el.innerHTML=rows.map((r,i)=>{const mapUrl=`https://map.naver.com/p/search/${encodeURIComponent(`경상북도 칠곡군 왜관읍 ${r[0]}`)}`;return `<div class="rank-row" tabindex="0" data-name="${r[0]}" data-meta="${r[1]}" data-value="${r[2]}"><span class="rank-no ${i<3?'top':''}">${i+1}</span><span class="rank-name"><span class="rank-title-line"><strong>${r[0]}</strong><a class="map-link" href="${mapUrl}" target="_blank" rel="noopener noreferrer" aria-label="${r[0]} 지도에서 보기"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14s4-4.4 4-8A4 4 0 0 0 4 6c0 3.6 4 8 4 8Z"/><circle cx="8" cy="6" r="1.4"/></svg>지도</a></span><small>${r[1]}</small></span><span class="rank-bar"><i style="width:${Math.max(15,r[2]/max*100)}%"></i></span><span class="rank-value">${fmt(r[2])}${isMonthly?'만':'만'}<small>${isMonthly?'월 환산':'최근 신고가'}</small></span></div>`}).join('');}
+function rankings(el,rows,isMonthly=false){const max=rows[0][2],scope=selectedRi==='all'?'경상북도 칠곡군 왜관읍':`경상북도 칠곡군 왜관읍 ${riProfiles[selectedRi].label}`;el.innerHTML=rows.map((r,i)=>{const mapUrl=`https://map.naver.com/p/search/${encodeURIComponent(`${scope} ${r[0]}`)}`;return `<div class="rank-row" tabindex="0" data-name="${r[0]}" data-meta="${r[1]}" data-value="${r[2]}"><span class="rank-no ${i<3?'top':''}">${i+1}</span><span class="rank-name"><span class="rank-title-line"><strong>${r[0]}</strong><a class="map-link" href="${mapUrl}" target="_blank" rel="noopener noreferrer" aria-label="${r[0]} 지도에서 보기"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14s4-4.4 4-8A4 4 0 0 0 4 6c0 3.6 4 8 4 8Z"/><circle cx="8" cy="6" r="1.4"/></svg>지도</a></span><small>${r[1]}</small></span><span class="rank-bar"><i style="width:${Math.max(15,r[2]/max*100)}%"></i></span><span class="rank-value">${fmt(r[2])}${isMonthly?'만':'만'}<small>${isMonthly?'월 환산':'최근 신고가'}</small></span></div>`}).join('');}
 
-function render(){const d=datasets[activeType];$('#metricIndexLabel').textContent=`${d.label} 가격지수`;$('#metricIndex').textContent=d.index.at(-1);$('#metricIndexChange').textContent=d.indexChange;$('#metricPriceLabel').textContent=activeType==='monthly'?'평균 보증금 / 월세':'평균 실거래가';$('#metricPrice').textContent=d.price;$('#metricPriceSub').textContent=d.priceSub;$('#metricPyeong').textContent=d.pyeongAvg;$('#metricPyeongSub').textContent=d.pyeongSub;$('#metricDeals').textContent=d.deals;$('#chartTitle').textContent=`${d.label} 실거래 가격지수`;$('#chartValue').textContent=d.index.at(-1);$('#chartChange').textContent=`최근 1년 ${d.indexChange.replace('↗ ','+')}`;$('#chartNote').textContent=d.note;$('#topPriceTitle').textContent=`${d.label} 실거래가 TOP 10`;$('#topPyeongTitle').textContent=`${d.label} 평당가격 TOP 10`;$('#ratioValue').innerHTML=`${d.ratio}<small>${d.ratio==='—'?'':'%'}</small>`;sparkline($('#indexSpark'),d.index);$('#mainChart').innerHTML=chart(d.index,d.county);$('#volumeBars').innerHTML=d.vol.map(v=>`<i style="height:${Math.max(5,v/Math.max(...d.vol)*28)}px"></i>`).join('');rankings($('#priceRanking'),d.prices,activeType==='monthly');rankings($('#pyeongRanking'),d.pyeong,activeType==='monthly');bindRankings();}
+function render(){const d=getViewData(),scope=riProfiles[selectedRi].label;$('#metricIndexLabel').textContent=`${scope} ${d.label} 가격지수`;$('#metricIndex').textContent=d.index.at(-1);$('#metricIndexChange').textContent=d.indexChange;$('#metricPriceLabel').textContent=activeType==='monthly'?'평균 보증금 / 월세':'평균 실거래가';$('#metricPrice').textContent=d.price;$('#metricPriceSub').textContent=d.priceSub;$('#metricPyeong').textContent=d.pyeongAvg;$('#metricPyeongSub').textContent=`${scope} · ${d.pyeongSub}`;$('#metricDeals').textContent=d.deals;$('#chartTitle').textContent=`${scope} ${d.label} 실거래 가격지수`;$('#chartValue').textContent=d.index.at(-1);$('#chartChange').textContent=`선택 기준 ${d.indexChange}`;$('#chartNote').textContent=`${scope} · ${dateLabel(selectedDate)} 기준. ${d.note}`;$('#topPriceTitle').textContent=`${scope} ${d.label} 실거래가 TOP 10`;$('#topPyeongTitle').textContent=`${scope} ${d.label} 평당가격 TOP 10`;$('#ratioValue').innerHTML=`${d.ratio}<small>${d.ratio==='—'?'':'%'}</small>`;$('#filterStatus').textContent=`${scope} · ${dateLabel(selectedDate)}`;$('#dateInput').value=selectedDate;$('#prevDate').disabled=selectedDate<=minDate;$('#nextDate').disabled=selectedDate>=maxDate;sparkline($('#indexSpark'),d.index);$('#mainChart').innerHTML=chart(d.index,d.county);$('#volumeBars').innerHTML=d.vol.map(v=>`<i style="height:${Math.max(5,v/Math.max(...d.vol)*28)}px"></i>`).join('');rankings($('#priceRanking'),d.prices,activeType==='monthly');rankings($('#pyeongRanking'),d.pyeong,activeType==='monthly');bindRankings();}
 
 function bindRankings(){$$('.rank-row').forEach(row=>{const open=()=>{const name=row.dataset.name,meta=row.dataset.meta,value=row.dataset.value;$('#dialogContent').innerHTML=`<span class="dialog-eyebrow">COMPLEX SNAPSHOT · ${datasets[activeType].label}</span><h3>${name}</h3><div class="dialog-meta">${meta}</div><div class="dialog-grid"><div><span>표시 가격</span><strong>${Number(value).toLocaleString('ko-KR')}만원</strong></div><div><span>시장 순위</span><strong>${[...row.parentElement.children].indexOf(row)+1}위</strong></div><div><span>가격 흐름</span><strong>완만한 상승</strong></div><div><span>데이터 상태</span><strong>시연용</strong></div></div><p>선택한 단지의 최근 거래 요약입니다. 실거래 신고 취소 및 정정이 반영될 수 있으므로 실제 계약 전 공공 원문을 확인하세요.</p>`;$('#detailDialog').showModal();};row.addEventListener('click',open);row.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.closest('.map-link'))open()});row.querySelector('.map-link')?.addEventListener('click',e=>e.stopPropagation())})}
 
 function renderLocation(key){const d=locationData[key];$('#insightKicker').textContent=d.kicker;$('#insightTitle').innerHTML=d.title;$('#insightBody').textContent=d.body;$('#insightStats').innerHTML=d.stats.map(x=>`<div><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join('');$('#insightNote').textContent=d.note;$('#mapCanvas').style.background=d.theme;$$('.map-label').forEach((el,i)=>el.textContent=d.labels[i]);}
 
+function showToast(message){const toast=$('#toast');toast.textContent=message;toast.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove('show'),1600)}
+function setSelectedDate(value){if(!value)return;selectedDate=value<minDate?minDate:value>maxDate?maxDate:value;render();showToast(`${riProfiles[selectedRi].label} · ${dateLabel(selectedDate)} 데이터 적용`)}
+function stepDate(days){const next=dateValue(selectedDate);next.setDate(next.getDate()+days);setSelectedDate(next.toISOString().slice(0,10))}
+
+$('#riSelect').addEventListener('change',e=>{selectedRi=e.target.value;render();showToast(`${riProfiles[selectedRi].label} 데이터가 적용되었습니다`)});
+$('#dateInput').addEventListener('change',e=>setSelectedDate(e.target.value));
+$('#prevDate').addEventListener('click',()=>stepDate(-1));
+$('#nextDate').addEventListener('click',()=>stepDate(1));
 $$('.trade-tab').forEach(btn=>btn.addEventListener('click',()=>{$$('.trade-tab').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false')});btn.classList.add('active');btn.setAttribute('aria-selected','true');activeType=btn.dataset.type;render()}));
-$$('.period-tabs button').forEach(btn=>btn.addEventListener('click',()=>{$$('.period-tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activePeriod=btn.dataset.period;const toast=$('#toast');toast.textContent=`${btn.textContent} 조회 범위가 적용되었습니다`;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1600)}));
+$$('.period-tabs button').forEach(btn=>btn.addEventListener('click',()=>{$$('.period-tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activePeriod=btn.dataset.period;showToast(`${btn.textContent} 조회 범위가 적용되었습니다`)}));
 $$('.location-tab').forEach(btn=>btn.addEventListener('click',()=>{$$('.location-tab').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false')});btn.classList.add('active');btn.setAttribute('aria-selected','true');renderLocation(btn.dataset.location)}));
 $('#detailDialog .dialog-close').addEventListener('click',()=>$('#detailDialog').close());
 $('#helpBtn').addEventListener('click',()=>{$('#dialogContent').innerHTML='<span class="dialog-eyebrow">DATA GUIDE</span><h3>데이터 안내</h3><div class="dialog-meta">이 대시보드는 인터랙션과 시각 구성을 확인하기 위한 프로토타입입니다.</div><div class="dialog-grid"><div><span>지역 범위</span><strong>왜관읍</strong></div><div><span>가격 단위</span><strong>만원</strong></div><div><span>갱신 주기</span><strong>샘플</strong></div><div><span>출처 상태</span><strong>미연동</strong></div></div><p>운영 전에는 국토교통부 실거래가 공개시스템, 교육부 학교알리미, 국가교통DB 등 공식 데이터 연동과 주소 정규화가 필요합니다.</p>';$('#detailDialog').showModal()});
