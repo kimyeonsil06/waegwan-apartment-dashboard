@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0e2f28" />
+  <meta name="description" content="경상북도 칠곡군 왜관읍 아파트 실거래가와 입지를 한눈에 살펴보는 대시보드" />
+  <title>왜관 아파트 인사이트</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="왜관 아파트 인사이트 홈">
+        <span class="brand-mark"><span></span><span></span><span></span></span>
+        <span>왜관<span class="brand-muted"> 아파트 인사이트</span></span>
+      </a>
+      <nav class="topnav" aria-label="주요 메뉴">
+        <a class="active" href="#overview">시장요약</a>
+        <a href="#rankings">단지순위</a>
+        <a href="#location">입지분석</a>
+      </nav>
+      <div class="header-tools">
+        <span class="data-pill"><i></i> 데모 데이터</span>
+        <button class="icon-btn" id="helpBtn" aria-label="데이터 안내">?</button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" id="overview">
+        <div class="hero-copy">
+          <div class="eyebrow"><span></span> GYEONGBUK · CHILGOK</div>
+          <h1>왜관의 집값,<br><em>흐름으로 읽다.</em></h1>
+          <p>실거래 흐름부터 단지별 가격, 생활 인프라까지.<br class="desktop-only"> 의사결정에 필요한 핵심만 한 화면에 담았습니다.</p>
+        </div>
+        <div class="hero-actions">
+          <div class="updated"><span>기준일</span><strong>2026. 10. 22</strong></div>
+          <button class="primary-btn" id="reportBtn">분석 리포트 보기 <span>↗</span></button>
+        </div>
+        <div class="hero-grid" aria-hidden="true"></div>
+      </section>
+
+      <section class="control-row" aria-label="대시보드 필터">
+        <div class="trade-tabs" role="tablist" aria-label="거래 유형">
+          <button class="trade-tab active" data-type="sale" role="tab" aria-selected="true">매매</button>
+          <button class="trade-tab" data-type="jeonse" role="tab" aria-selected="false">전세</button>
+          <button class="trade-tab" data-type="monthly" role="tab" aria-selected="false">월세</button>
+        </div>
+        <div class="period-tabs" aria-label="조회 기간">
+          <button data-period="1Y">1년</button>
+          <button class="active" data-period="3Y">3년</button>
+          <button data-period="5Y">5년</button>
+        </div>
+      </section>
+
+      <section class="metric-strip" aria-label="핵심 지표">
+        <article class="metric-card featured">
+          <div class="metric-head"><span id="metricIndexLabel">매매 가격지수</span><span class="tag">2023.01 = 100</span></div>
+          <div class="metric-main"><strong id="metricIndex">108.7</strong><span class="change up" id="metricIndexChange">↗ 1.8%</span></div>
+          <svg class="spark" id="indexSpark" viewBox="0 0 140 42" role="img" aria-label="가격지수 추이"></svg>
+        </article>
+        <article class="metric-card">
+          <div class="metric-head"><span id="metricPriceLabel">평균 실거래가</span><span class="muted">최근 3개월</span></div>
+          <div class="metric-main"><strong id="metricPrice">2억 8,450</strong><small>만원</small></div>
+          <div class="micro"><span class="dot green"></span><span id="metricPriceSub">전년 동기 대비 +3.2%</span></div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-head"><span>3.3㎡당 평균가</span><span class="muted">전용면적 기준</span></div>
+          <div class="metric-main"><strong id="metricPyeong">927</strong><small>만원</small></div>
+          <div class="micro"><span class="dot ochre"></span><span id="metricPyeongSub">칠곡군 평균보다 6.4% ↑</span></div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-head"><span>거래량</span><span class="muted">최근 30일</span></div>
+          <div class="metric-main"><strong id="metricDeals">47</strong><small>건</small></div>
+          <div class="volume-bars" id="volumeBars" aria-label="최근 거래량 추이"></div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel price-panel">
+          <div class="panel-header">
+            <div><span class="section-num">01</span><h2 id="chartTitle">실거래 가격지수</h2></div>
+            <div class="legend"><span><i class="line-key"></i> 왜관읍</span><span><i class="dash-key"></i> 칠곡군</span></div>
+          </div>
+          <div class="chart-summary"><strong id="chartValue">108.7</strong><span class="change up" id="chartChange">최근 1년 +1.8%</span></div>
+          <div class="main-chart" id="mainChart" aria-label="가격지수 시계열 차트"></div>
+          <div class="chart-note"><span>100</span><p id="chartNote">금리 변동에도 생활권 중심 단지의 실거래가는 완만한 회복세입니다.</p></div>
+        </article>
+
+        <article class="panel momentum-panel">
+          <div class="panel-header">
+            <div><span class="section-num">02</span><h2>시장 온도</h2></div>
+            <span class="status-badge">관망 우세</span>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge" style="--score:64">
+              <div class="gauge-center"><strong id="marketScore">64</strong><span>/ 100</span></div>
+            </div>
+            <div class="gauge-labels"><span>침체</span><span>균형</span><span>과열</span></div>
+          </div>
+          <div class="signal-list">
+            <div><span>거래 활력</span><div class="meter"><i style="width:72%"></i></div><strong>양호</strong></div>
+            <div><span>가격 모멘텀</span><div class="meter"><i style="width:58%"></i></div><strong>보통</strong></div>
+            <div><span>전세 안정성</span><div class="meter"><i style="width:81%"></i></div><strong>안정</strong></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="rankings" id="rankings">
+        <div class="section-title-row">
+          <div><span class="eyebrow dark"><span></span> COMPLEX RANKING</span><h2>단지별 가격을<br><em>나란히 비교하세요.</em></h2></div>
+          <p>거래가와 면적당 가격은 서로 다른 시장 신호를 보여줍니다.<br>행을 선택하면 단지의 거래 요약을 확인할 수 있어요.</p>
+        </div>
+        <div class="ranking-grid">
+          <article class="rank-card">
+            <div class="rank-header"><h3 id="topPriceTitle">실거래가 TOP 10</h3><span>단위: 만원</span></div>
+            <div class="rank-list" id="priceRanking"></div>
+          </article>
+          <article class="rank-card dark-card">
+            <div class="rank-header"><h3 id="topPyeongTitle">평당가격 TOP 10</h3><span>단위: 만원 / 3.3㎡</span></div>
+            <div class="rank-list" id="pyeongRanking"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="location" id="location">
+        <div class="section-title-row light">
+          <div><span class="eyebrow"><span></span> LOCATION INTELLIGENCE</span><h2>삶의 반경을<br><em>입체적으로 보다.</em></h2></div>
+          <p>궁금한 항목을 클릭하면 왜관읍 중심 생활권의<br>접근성과 주거 가치를 상세히 분석해 드립니다.</p>
+        </div>
+
+        <div class="location-layout">
+          <div class="location-menu" role="tablist" aria-label="입지 분석 항목">
+            <button class="location-tab active" data-location="school" role="tab" aria-selected="true"><span class="loc-icon">學</span><span><strong>학군</strong><small>초·중·고 교육환경</small></span><b>↗</b></button>
+            <button class="location-tab" data-location="traffic" role="tab"><span class="loc-icon">路</span><span><strong>도로 교통</strong><small>국도·고속도로 접근성</small></span><b>↗</b></button>
+            <button class="location-tab" data-location="rail" role="tab"><span class="loc-icon">驛</span><span><strong>철도 · KTX</strong><small>왜관역과 광역 이동</small></span><b>↗</b></button>
+            <button class="location-tab" data-location="future" role="tab"><span class="loc-icon">未</span><span><strong>미래 교통</strong><small>GTX 및 광역교통 진단</small></span><b>↗</b></button>
+          </div>
+
+          <article class="location-detail" id="locationDetail" aria-live="polite">
+            <div class="map-canvas" id="mapCanvas">
+              <svg viewBox="0 0 640 360" aria-hidden="true">
+                <path class="river" d="M-20,80 C100,120 115,230 250,238 C390,245 425,105 680,150"/>
+                <path class="road road-a" d="M30,320 C160,190 320,180 610,45"/>
+                <path class="road road-b" d="M90,20 C180,150 330,230 590,330"/>
+                <path class="minor" d="M20,190 C210,130 390,140 640,270"/>
+              </svg>
+              <div class="map-label l1">왜관역</div><div class="map-label l2">왜관초</div><div class="map-label l3">석전중</div><div class="map-label l4">왜관고</div>
+              <div class="map-pin main-pin"><span></span><b>왜관 생활권</b></div>
+              <div class="radius r1"></div><div class="radius r2"></div>
+            </div>
+            <div class="insight-copy">
+              <div class="insight-kicker" id="insightKicker">EDUCATION · 교육</div>
+              <h3 id="insightTitle">도보 생활권에 모인<br>안정적인 교육 인프라</h3>
+              <p id="insightBody">읍 중심부를 기준으로 초·중·고가 비교적 고르게 분포해 통학 동선이 짧습니다. 단지별 실제 배정학교와 통학구역은 계약 전 반드시 확인하세요.</p>
+              <div class="insight-stats" id="insightStats"></div>
+              <div class="analysis-callout"><span>ANALYST NOTE</span><p id="insightNote">학령기 수요는 역·상권 접근성과 함께 왜관읍 내 단지 선호도를 가르는 핵심 요인입니다.</p></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="extra-insights">
+        <div class="section-title-row compact">
+          <div><span class="eyebrow dark"><span></span> MARKET PULSE</span><h2>한눈에 보는 <em>수요 신호</em></h2></div>
+        </div>
+        <div class="insight-grid">
+          <article><span>전세가율</span><strong id="ratioValue">71.6<small>%</small></strong><div class="mini-progress"><i style="width:71.6%"></i></div><p>매매가 대비 전세 보증금 비율</p></article>
+          <article><span>평균 매물 소진</span><strong>42<small>일</small></strong><div class="mini-progress"><i style="width:55%"></i></div><p>등록부터 계약까지 추정 기간</p></article>
+          <article><span>선호 면적</span><strong>84<small>㎡</small></strong><div class="mini-progress"><i style="width:76%"></i></div><p>최근 거래가 가장 많은 전용면적</p></article>
+          <article><span>신축 프리미엄</span><strong>18.4<small>%</small></strong><div class="mini-progress"><i style="width:64%"></i></div><p>입주 10년 이내 단지 가격 차이</p></article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div><span class="brand-mark small"><span></span><span></span><span></span></span><strong>왜관 아파트 인사이트</strong></div>
+      <p>본 화면은 서비스 시연용 샘플 데이터를 사용합니다. 투자 판단이나 계약의 근거로 사용할 수 없으며, 실제 거래 전 국토교통부 실거래가 공개시스템과 관계 기관 자료를 확인하세요.</p>
+      <span>© 2026 Waegwan Homepulse</span>
+    </footer>
+  </div>
+
+  <dialog id="detailDialog">
+    <button class="dialog-close" aria-label="닫기">×</button>
+    <div class="dialog-content" id="dialogContent"></div>
+  </dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
