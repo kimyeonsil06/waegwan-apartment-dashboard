@@ -25,7 +25,7 @@
         <a href="#location">입지분석</a>
       </nav>
       <div class="header-tools">
-        <span class="data-pill official"><i></i> REB 공식지표 + 데모</span>
+        <span class="data-pill official"><i></i> REB 지수 + 국토부 실거래</span>
         <button class="icon-btn" id="helpBtn" aria-label="데이터 안내">?</button>
       </div>
     </header>
@@ -84,7 +84,7 @@
           <svg class="spark" id="indexSpark" viewBox="0 0 140 42" role="img" aria-label="가격지수 추이"></svg>
         </article>
         <article class="metric-card">
-          <div class="metric-head"><span id="metricPriceLabel">평균 실거래가</span><span class="muted">최근 3개월</span></div>
+          <div class="metric-head"><span id="metricPriceLabel">평균 실거래가</span><span class="muted">선택 기준일</span></div>
           <div class="metric-main"><strong id="metricPrice">2억 8,450</strong><small>만원</small></div>
           <div class="micro"><span class="dot green"></span><span id="metricPriceSub">전년 동기 대비 +3.2%</span></div>
         </article>
@@ -94,7 +94,7 @@
           <div class="micro"><span class="dot ochre"></span><span id="metricPyeongSub">칠곡군 평균보다 6.4% ↑</span></div>
         </article>
         <article class="metric-card">
-          <div class="metric-head"><span>거래량</span><span class="muted">최근 30일</span></div>
+          <div class="metric-head"><span>거래량</span><span class="muted">적용 신고월</span></div>
           <div class="metric-main"><strong id="metricDeals">47</strong><small>건</small></div>
           <div class="volume-bars" id="volumeBars" aria-label="최근 거래량 추이"></div>
         </article>
@@ -177,8 +177,9 @@
       <section class="rankings" id="rankings">
         <div class="section-title-row">
           <div><span class="eyebrow dark"><span></span> COMPLEX RANKING</span><h2>단지별 가격을<br><em>나란히 비교하세요.</em></h2></div>
-          <p>거래가와 면적당 가격은 서로 다른 시장 신호를 보여줍니다.<br>행을 선택하면 단지의 거래 요약을 확인할 수 있어요.</p>
+          <p>공공데이터포털의 국토교통부 신고자료를 선택 날짜와 ‘리’ 기준으로 다시 집계합니다.<br>행을 선택하면 거래 면적·층·신고일을 확인할 수 있어요.</p>
         </div>
+        <div class="molit-source-bar"><span>국토부 공식 실거래</span><strong id="molitStatus">공식 실거래 자료를 불러오는 중입니다.</strong><a href="https://www.data.go.kr/data/15126469/openapi.do" target="_blank" rel="noopener noreferrer">매매 원문 ↗</a><a href="https://www.data.go.kr/data/15126474/openapi.do" target="_blank" rel="noopener noreferrer">전월세 원문 ↗</a></div>
         <div class="ranking-grid">
           <article class="rank-card">
             <div class="rank-header"><h3 id="topPriceTitle">실거래가 TOP 10</h3><span>단위: 만원</span></div>
@@ -243,7 +244,7 @@
 
     <footer>
       <div><span class="brand-mark small"><span></span><span></span><span></span></span><strong>왜관 아파트 인사이트</strong></div>
-      <p>한국부동산원 R-ONE의 칠곡군 월간 아파트 가격지수는 공식 통계이며, 실거래가·단지순위·‘리’별 수치는 서비스 시연용 샘플입니다. 실제 거래 전 국토교통부 실거래가 공개시스템과 관계 기관 원문을 확인하세요.</p>
+      <p>한국부동산원 R-ONE의 칠곡군 월간 가격지수와 공공데이터포털의 국토교통부 아파트 매매·전월세 신고자료를 사용합니다. 상단 시연 가격지수·시장온도·수요 신호는 설명용이며, 신고 취소·정정 여부는 계약 전 원문에서 확인하세요.</p>
       <span>© 2026 Waegwan Homepulse</span>
     </footer>
   </div>
